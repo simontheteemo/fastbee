@@ -1,0 +1,587 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model accounts_profile {
+  id            Int       @id @default(autoincrement())
+  brands        String[]  @db.VarChar(20)
+  user_id       Int       @unique
+  branch        String    @db.VarChar(2)
+  ca_price_tier String    @db.VarChar(50)
+  auth_user     auth_user @relation(fields: [user_id], references: [id])
+}
+
+model auth_group {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @unique @db.VarChar(150)
+  auth_group_permissions auth_group_permissions[]
+  auth_user_groups       auth_user_groups[]
+
+  @@index([name], name: "auth_group_name_a6ea08ec_like")
+}
+
+model auth_group_permissions {
+  id              Int             @id @default(autoincrement())
+  group_id        Int
+  permission_id   Int
+  auth_group      auth_group      @relation(fields: [group_id], references: [id])
+  auth_permission auth_permission @relation(fields: [permission_id], references: [id])
+
+  @@unique([group_id, permission_id], name: "auth_group_permissions_group_id_permission_id_0cd325b0_uniq")
+  @@index([group_id], name: "auth_group_permissions_group_id_b120cbf9")
+  @@index([permission_id], name: "auth_group_permissions_permission_id_84c5c92e")
+}
+
+model auth_permission {
+  id                         Int                          @id @default(autoincrement())
+  name                       String                       @db.VarChar(255)
+  content_type_id            Int
+  codename                   String                       @db.VarChar(100)
+  django_content_type        django_content_type          @relation(fields: [content_type_id], references: [id])
+  auth_group_permissions     auth_group_permissions[]
+  auth_user_user_permissions auth_user_user_permissions[]
+
+  @@unique([content_type_id, codename], name: "auth_permission_content_type_id_codename_01ab375a_uniq")
+  @@index([content_type_id], name: "auth_permission_content_type_id_2f476e4b")
+}
+
+model authtoken_token {
+  key       String    @id @db.VarChar(40)
+  created   DateTime  @db.Timestamptz(6)
+  user_id   Int       @unique
+  auth_user auth_user @relation(fields: [user_id], references: [id])
+
+  @@index([key], name: "authtoken_token_key_10f0b77e_like")
+}
+
+model auth_user {
+  id                         Int                          @id @default(autoincrement())
+  password                   String                       @db.VarChar(128)
+  last_login                 DateTime?                    @db.Timestamptz(6)
+  is_superuser               Boolean
+  username                   String                       @unique @db.VarChar(150)
+  first_name                 String                       @db.VarChar(150)
+  last_name                  String                       @db.VarChar(150)
+  email                      String                       @db.VarChar(254)
+  is_staff                   Boolean
+  is_active                  Boolean
+  date_joined                DateTime                     @db.Timestamptz(6)
+  accounts_profile           accounts_profile?
+  authtoken_token            authtoken_token?
+  auth_user_groups           auth_user_groups[]
+  auth_user_user_permissions auth_user_user_permissions[]
+  django_admin_log           django_admin_log[]
+
+  @@index([username], name: "auth_user_username_6821ab7c_like")
+}
+
+model auth_user_groups {
+  id         Int        @id @default(autoincrement())
+  user_id    Int
+  group_id   Int
+  auth_group auth_group @relation(fields: [group_id], references: [id])
+  auth_user  auth_user  @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, group_id], name: "auth_user_groups_user_id_group_id_94350c0c_uniq")
+  @@index([group_id], name: "auth_user_groups_group_id_97559544")
+  @@index([user_id], name: "auth_user_groups_user_id_6a12ed8b")
+}
+
+model auth_user_user_permissions {
+  id              Int             @id @default(autoincrement())
+  user_id         Int
+  permission_id   Int
+  auth_permission auth_permission @relation(fields: [permission_id], references: [id])
+  auth_user       auth_user       @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, permission_id], name: "auth_user_user_permissions_user_id_permission_id_14a6b632_uniq")
+  @@index([permission_id], name: "auth_user_user_permissions_permission_id_1fbb5f2c")
+  @@index([user_id], name: "auth_user_user_permissions_user_id_a95ead1b")
+}
+
+model django_admin_log {
+  id                  Int                  @id @default(autoincrement())
+  action_time         DateTime             @db.Timestamptz(6)
+  object_id           String?
+  object_repr         String               @db.VarChar(200)
+  action_flag         Int                  @db.SmallInt
+  change_message      String
+  content_type_id     Int?
+  user_id             Int
+  django_content_type django_content_type? @relation(fields: [content_type_id], references: [id])
+  auth_user           auth_user            @relation(fields: [user_id], references: [id])
+
+  @@index([content_type_id], name: "django_admin_log_content_type_id_c4bce8eb")
+  @@index([user_id], name: "django_admin_log_user_id_c564eba6")
+}
+
+model django_content_type {
+  id               Int                @id @default(autoincrement())
+  app_label        String             @db.VarChar(100)
+  model            String             @db.VarChar(100)
+  auth_permission  auth_permission[]
+  django_admin_log django_admin_log[]
+
+  @@unique([app_label, model], name: "django_content_type_app_label_model_76bd3d3b_uniq")
+}
+
+model django_migrations {
+  id      Int      @id @default(autoincrement())
+  app     String   @db.VarChar(255)
+  name    String   @db.VarChar(255)
+  applied DateTime @db.Timestamptz(6)
+}
+
+model django_session {
+  session_key  String   @id @db.VarChar(40)
+  session_data String
+  expire_date  DateTime @db.Timestamptz(6)
+
+  @@index([expire_date], name: "django_session_expire_date_a5c62663")
+  @@index([session_key], name: "django_session_session_key_c0390e0f_like")
+}
+
+model pages_block {
+  id                 Int        @id @default(autoincrement())
+  block_type         String?    @db.VarChar(60)
+  block_size         String?    @db.VarChar(60)
+  block_order        Int
+  image              String?    @db.VarChar(300)
+  block_product_code String?    @db.VarChar(60)
+  link               String?    @db.VarChar(200)
+  page_id            Int
+  pages_page         pages_page @relation(fields: [page_id], references: [id])
+
+  @@index([page_id], name: "pages_block_page_id_714ffaf5")
+}
+
+model pages_page {
+  id          Int           @id @default(autoincrement())
+  slug        String        @unique @db.VarChar(60)
+  name        String        @db.VarChar(60)
+  brand       String?       @db.VarChar(60)
+  branch      String?       @db.VarChar(60)
+  pages_block pages_block[]
+
+  @@index([slug], name: "pages_page_slug_770723b9_like")
+}
+
+model products_brand {
+  id               Int                @id @default(autoincrement())
+  slug             String             @db.VarChar(60)
+  name             String             @db.VarChar(60)
+  products_product products_product[]
+
+  @@index([slug], name: "products_brand_slug_925fd11b")
+  @@index([slug], name: "products_brand_slug_925fd11b_like")
+}
+
+model products_catwalk {
+  id               Int              @id @default(autoincrement())
+  path             String?          @db.VarChar(300)
+  available_au     Boolean
+  available_nz     Boolean
+  available_ca     Boolean
+  available_us     Boolean
+  product_id       Int
+  products_product products_product @relation(fields: [product_id], references: [id])
+
+  @@index([product_id], name: "products_catwalk_product_id_7f45ae61")
+}
+
+model products_color {
+  id               Int                @id @default(autoincrement())
+  accpac_code      String?            @db.VarChar(20)
+  accpac_name      String?            @db.VarChar(60)
+  name_au          String?            @db.VarChar(60)
+  name_nz          String?            @db.VarChar(60)
+  name_us          String?            @db.VarChar(60)
+  name_ca          String?            @db.VarChar(60)
+  name_ca_fr       String?            @db.VarChar(60)
+  available_au     Boolean
+  available_nz     Boolean
+  available_us     Boolean
+  available_ca     Boolean
+  new_nz           Boolean
+  new_au           Boolean
+  new_ca           Boolean
+  new_us           Boolean
+  tag_value        String?            @db.VarChar(20)
+  tag_value_alt    String?            @db.VarChar(20)
+  hex_value        String?            @db.VarChar(20)
+  tag_name         String?            @db.VarChar(40)
+  index            Int
+  product_id       Int
+  tag_name_alt     String?            @db.VarChar(40)
+  clearance_au     Boolean
+  clearance_ca     Boolean
+  clearance_nz     Boolean
+  clearance_us     Boolean
+  products_product products_product   @relation(fields: [product_id], references: [id])
+  products_fitting products_fitting[]
+  products_image   products_image[]
+  products_size    products_size[]
+
+  @@index([available_nz], name: "products_co_availab_974f78_idx")
+  @@index([available_au], name: "products_co_availab_aa792d_idx")
+  @@index([available_ca], name: "products_co_availab_e57989_idx")
+  @@index([available_us], name: "products_co_availab_faf7e7_idx")
+  @@index([new_au], name: "products_co_new_au_e2dd3e_idx")
+  @@index([new_ca], name: "products_co_new_ca_e72e97_idx")
+  @@index([new_nz], name: "products_co_new_nz_c054ee_idx")
+  @@index([new_us], name: "products_co_new_us_c731ad_idx")
+  @@index([tag_name_alt], name: "products_co_tag_nam_8b38ee_idx")
+  @@index([tag_name], name: "products_co_tag_nam_ff2837_idx")
+  @@index([product_id], name: "products_color_product_id_69d94ed0")
+}
+
+model products_colortagname {
+  id        Int     @id @default(autoincrement())
+  name      String? @db.VarChar(40)
+  slug      String? @db.VarChar(40)
+  hex_value String? @db.VarChar(40)
+}
+
+model products_fitting {
+  id               Int              @id @default(autoincrement())
+  front            Boolean
+  stack            Int
+  option           String?          @db.VarChar(200)
+  path             String?          @db.VarChar(300)
+  gender           String?          @db.VarChar(60)
+  color_id         Int
+  product_id       Int
+  products_color   products_color   @relation(fields: [color_id], references: [id])
+  products_product products_product @relation(fields: [product_id], references: [id])
+
+  @@index([color_id], name: "products_fitting_color_id_157f6766")
+  @@index([product_id], name: "products_fitting_product_id_3cfb1a3c")
+}
+
+model products_image {
+  id               Int               @id @default(autoincrement())
+  name             String?           @db.VarChar(200)
+  front            Boolean
+  image_type       String?           @db.VarChar(60)
+  index            Int
+  path             String?           @db.VarChar(300)
+  path_product     String?           @db.VarChar(300)
+  color_id         Int?
+  product_id       Int?
+  available_au     Boolean
+  available_ca     Boolean
+  available_nz     Boolean
+  available_us     Boolean
+  products_color   products_color?   @relation(fields: [color_id], references: [id])
+  products_product products_product? @relation(fields: [product_id], references: [id])
+
+  @@index([color_id], name: "products_image_color_id_bdecfb1f")
+  @@index([product_id], name: "products_image_product_id_978188e9")
+}
+
+model products_instagram {
+  id           Int     @id @default(autoincrement())
+  post_name    String? @db.VarChar(200)
+  post_link    String? @db.VarChar(200)
+  path         String? @db.VarChar(300)
+  available_au Boolean
+  available_nz Boolean
+  available_ca Boolean
+  available_us Boolean
+  brand        String? @db.VarChar(40)
+}
+
+model products_link {
+  id        Int      @id @default(autoincrement())
+  slug      String?  @unique @db.VarChar(60)
+  name      String?  @unique @db.VarChar(60)
+  products  String[] @db.VarChar(40)
+  banner    String?  @db.VarChar(300)
+  link      String?  @db.VarChar(255)
+  link_name String?  @db.VarChar(60)
+
+  @@index([slug], name: "products_li_slug_aa5f20_idx")
+  @@index([name], name: "products_link_name_79d3806b_like")
+  @@index([slug], name: "products_link_slug_bf50ef6a_like")
+}
+
+model products_pictogram {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique @db.VarChar(60)
+  description String? @db.VarChar(200)
+  path        String? @db.VarChar(300)
+
+  @@index([name], name: "products_pi_name_971bf4_idx")
+  @@index([name], name: "products_pictogram_name_bebbb967_like")
+}
+
+model products_product {
+  id                        Int                         @id @default(autoincrement())
+  original_brand            String                      @db.VarChar(60)
+  slug                      String                      @unique @db.VarChar(50)
+  name                      String                      @db.VarChar(255)
+  code                      String                      @db.VarChar(60)
+  available_nz              Boolean
+  available_au              Boolean
+  available_ca              Boolean
+  available_us              Boolean
+  description_nz            Json?
+  description_au            Json?
+  description_ca            Json?
+  description_us            Json?
+  prices_nz                 Json?
+  prices_au                 Json?
+  prices_ca                 Json?
+  prices_us                 Json?
+  seo_score                 String?                     @db.VarChar(60)
+  seo_title                 String?                     @db.VarChar(200)
+  seo_metadesc              String?
+  seo_focuskw               String?
+  sales_status              String?                     @db.VarChar(60)
+  sleeve                    String?                     @db.VarChar(200)
+  fabric                    String?                     @db.VarChar(200)
+  industry                  String?                     @db.VarChar(200)
+  tech                      String?                     @db.VarChar(200)
+  fit                       String?                     @db.VarChar(200)
+  gender                    String?                     @db.VarChar(200)
+  key_tags                  String[]                    @db.VarChar(200)
+  companions                String[]                    @db.VarChar(40)
+  suggestions               String[]                    @db.VarChar(40)
+  pictograms                String[]                    @db.VarChar(40)
+  index                     Int
+  brand_id                  Int
+  companions_au             String[]                    @db.VarChar(40)
+  companions_ca             String[]                    @db.VarChar(40)
+  companions_nz             String[]                    @db.VarChar(40)
+  companions_us             String[]                    @db.VarChar(40)
+  msrp_au                   Decimal?                    @db.Decimal(6, 2)
+  msrp_ca                   Decimal?                    @db.Decimal(6, 2)
+  msrp_nz                   Decimal?                    @db.Decimal(6, 2)
+  msrp_us                   Decimal?                    @db.Decimal(6, 2)
+  suggestions_au            String[]                    @db.VarChar(40)
+  suggestions_ca            String[]                    @db.VarChar(40)
+  suggestions_nz            String[]                    @db.VarChar(40)
+  suggestions_us            String[]                    @db.VarChar(40)
+  sales_status_au           String?                     @db.VarChar(60)
+  sales_status_ca           String?                     @db.VarChar(60)
+  sales_status_nz           String?                     @db.VarChar(60)
+  sales_status_us           String?                     @db.VarChar(60)
+  unify_au                  Boolean
+  unify_nz                  Boolean
+  unify_key_tags_au         String[]                    @db.VarChar(200)
+  unify_key_tags_nz         String[]                    @db.VarChar(200)
+  unify_ca                  Boolean
+  unify_key_tags_ca         String[]                    @db.VarChar(200)
+  unify_key_tags_us         String[]                    @db.VarChar(200)
+  unify_us                  Boolean
+  index_au                  Int
+  index_ca                  Int
+  index_nz                  Int
+  index_us                  Int
+  products_brand            products_brand              @relation(fields: [brand_id], references: [id])
+  products_catwalk          products_catwalk[]
+  products_color            products_color[]
+  products_fitting          products_fitting[]
+  products_image            products_image[]
+  products_size             products_size[]
+  products_sizechart        products_sizechart[]
+  products_stylesheet       products_stylesheet[]
+  products_subdomainpricing products_subdomainpricing[]
+
+  @@index([available_au], name: "products_pr_availab_128c82_idx")
+  @@index([available_us], name: "products_pr_availab_26833a_idx")
+  @@index([available_nz], name: "products_pr_availab_3ba873_idx")
+  @@index([available_ca], name: "products_pr_availab_46746a_idx")
+  @@index([brand_id], name: "products_pr_brand_i_dc6890_idx")
+  @@index([gender], name: "products_pr_gender_b0135f_idx")
+  @@index([index], name: "products_pr_index_58b725_idx")
+  @@index([key_tags], name: "products_pr_key_tag_18afea_gin")
+  @@index([sales_status_us], name: "products_pr_sales_s_047b01_idx")
+  @@index([sales_status_au], name: "products_pr_sales_s_a099a2_idx")
+  @@index([sales_status_ca], name: "products_pr_sales_s_c23a4a_idx")
+  @@index([sales_status_nz], name: "products_pr_sales_s_da1fff_idx")
+  @@index([slug], name: "products_pr_slug_3edc0c_idx")
+  @@index([unify_au], name: "products_pr_unify_a_6794fd_idx")
+  @@index([unify_ca], name: "products_pr_unify_c_044dd1_idx")
+  @@index([unify_key_tags_ca], name: "products_pr_unify_k_007c32_gin")
+  @@index([unify_key_tags_au], name: "products_pr_unify_k_3b13a1_gin")
+  @@index([unify_key_tags_us], name: "products_pr_unify_k_4af676_gin")
+  @@index([unify_key_tags_nz], name: "products_pr_unify_k_cc9297_gin")
+  @@index([unify_nz], name: "products_pr_unify_n_8fc232_idx")
+  @@index([unify_us], name: "products_pr_unify_u_5f5d8b_idx")
+  @@index([brand_id], name: "products_product_brand_id_3e2e8fd1")
+  @@index([slug], name: "products_product_slug_70d3148d_like")
+}
+
+model products_release {
+  id           Int      @id @default(autoincrement())
+  brand        String?  @db.VarChar(40)
+  branch       String?  @db.VarChar(20)
+  name         String   @unique @db.VarChar(60)
+  release_date DateTime @db.Timestamptz(6)
+  active       Boolean
+  products     String[] @db.VarChar(40)
+
+  @@index([name], name: "products_release_name_3a0551dc_like")
+}
+
+model products_size {
+  id               Int              @id @default(autoincrement())
+  sku              String           @db.VarChar(60)
+  size_au          String           @db.VarChar(10)
+  size_nz          String           @db.VarChar(10)
+  size_ca          String           @db.VarChar(10)
+  size_us          String           @db.VarChar(10)
+  available_au     Boolean
+  available_nz     Boolean
+  available_ca     Boolean
+  available_us     Boolean
+  new_nz           Boolean
+  new_au           Boolean
+  new_ca           Boolean
+  new_us           Boolean
+  quantity_nz      Int
+  quantity_au      Int
+  quantity_ca      Int
+  quantity_us      Int
+  index            Int
+  color_id         Int
+  product_id       Int
+  products_color   products_color   @relation(fields: [color_id], references: [id])
+  products_product products_product @relation(fields: [product_id], references: [id])
+
+  @@index([color_id], name: "products_size_color_id_9ee8745e")
+  @@index([product_id], name: "products_size_product_id_e2d98aa1")
+}
+
+model products_sizechart {
+  id               Int              @id @default(autoincrement())
+  name             String           @db.VarChar(60)
+  available_au     Boolean
+  available_nz     Boolean
+  available_us     Boolean
+  available_ca     Boolean
+  content          Json
+  product_id       Int
+  products_product products_product @relation(fields: [product_id], references: [id])
+
+  @@index([product_id], name: "products_sizechart_product_id_a7433ddd")
+}
+
+model products_stylesheet {
+  id               Int              @id @default(autoincrement())
+  path             String?          @db.VarChar(300)
+  available_au     Boolean
+  available_nz     Boolean
+  available_ca     Boolean
+  available_us     Boolean
+  product_id       Int
+  products_product products_product @relation(fields: [product_id], references: [id])
+
+  @@index([product_id], name: "products_stylesheet_product_id_82dddf47")
+}
+
+model products_subdomainpricing {
+  id               Int              @id @default(autoincrement())
+  accpac_code      String?          @db.VarChar(60)
+  selling_price    Decimal?         @db.Decimal(6, 2)
+  product_id       Int
+  products_product products_product @relation(fields: [product_id], references: [id])
+
+  @@index([product_id], name: "products_subdomainpricing_product_id_5aa67be6")
+}
+
+model promotions_bogopromotion {
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(30)
+  selected_items  String[] @db.VarChar(200)
+  purchase_amount Int
+  gifted_items    String[] @db.VarChar(200)
+  gift_amount     Int
+  available_nz    Boolean
+  available_au    Boolean
+  available_ca    Boolean
+  available_us    Boolean
+  path            String?  @db.VarChar(300)
+  url             String?  @db.VarChar(200)
+}
+
+model signin_office {
+  id             Int              @id @default(autoincrement())
+  location       String           @db.VarChar(50)
+  key            String           @db.VarChar(50)
+  wifi_password  String?          @db.VarChar(50)
+  admins         String?          @db.VarChar(300)
+  signin_officer signin_officer[]
+  signin_signin  signin_signin[]
+}
+
+model signin_officer {
+  id            Int           @id @default(autoincrement())
+  name          String        @db.VarChar(120)
+  email         String        @db.VarChar(120)
+  branch_id     Int
+  signin_office signin_office @relation(fields: [branch_id], references: [id])
+
+  @@index([branch_id], name: "signin_officer_branch_id_ff604867")
+}
+
+model signin_signin {
+  id                Int           @id @default(autoincrement())
+  date              DateTime      @db.Date
+  time_in           DateTime      @db.Timestamptz(6)
+  time_out          DateTime?     @db.Timestamptz(6)
+  vistor            String        @db.VarChar(120)
+  visting           String        @db.VarChar(120)
+  comments          String?       @db.VarChar(300)
+  branch_id         Int
+  business          String?       @db.VarChar(120)
+  is_contractor     Boolean
+  number_of_vistors Int
+  signin_office     signin_office @relation(fields: [branch_id], references: [id])
+
+  @@index([branch_id], name: "signin_signin_branch_id_2b666b8f")
+}
+
+model sliders_slider {
+  id                 Int                  @id @default(autoincrement())
+  slug               String               @unique @db.VarChar(60)
+  name               String               @db.VarChar(60)
+  sliders_slideritem sliders_slideritem[]
+
+  @@index([slug], name: "sliders_slider_slug_76f3c571_like")
+}
+
+model sliders_slideritem {
+  id             Int            @id @default(autoincrement())
+  image          String?        @db.VarChar(300)
+  link           String?        @db.VarChar(200)
+  index          Int
+  activate       Boolean
+  slider_id      Int
+  responsive     Boolean
+  sliders_slider sliders_slider @relation(fields: [slider_id], references: [id])
+
+  @@index([slider_id], name: "sliders_slideritem_slider_id_a3899b17")
+}
+
+model storefinder_store {
+  id               Int    @id @default(autoincrement())
+  address          String @db.VarChar(200)
+  branch           String @db.VarChar(2)
+  brand            String @db.VarChar(60)
+  distributor_type String @db.VarChar(60)
+  lat              String @db.VarChar(60)
+  lng              String @db.VarChar(60)
+  name             String @db.VarChar(120)
+  phone_number     String @db.VarChar(60)
+  state            String @db.VarChar(60)
+  website          String @db.VarChar(120)
+  post_code        String @db.VarChar(60)
+  city             String @db.VarChar(60)
+}
