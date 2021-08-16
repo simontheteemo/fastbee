@@ -1,12 +1,10 @@
-import express from 'express';
-import { Request, Response } from 'express';
+import express from "express";
+import { Request, Response } from "express";
+const routes = require("./Routes/index");
 
 const app = express();
-
-app.get('/', (req: Request, res: Response) => {
-  res.send('Application works again and again and again.....!');
-});
+app.use("/products", routes);
 
 app.listen(3000, () => {
-  console.log('Application started on port 3000!');
-}); 
+  console.log("Application started on port 3000!");
+});
